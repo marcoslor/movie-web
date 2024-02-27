@@ -9,7 +9,6 @@ import {
 } from "react";
 
 import { SubtitleStyling } from "@/stores/subtitles";
-import { usePreviewThemeStore } from "@/stores/theme";
 
 export function useDerived<T>(
   initial: T,
@@ -57,11 +56,6 @@ export function useSettingsState(
   const [backendUrlState, setBackendUrl, resetBackendUrl, backendUrlChanged] =
     useDerived(backendUrl);
   const [themeState, setTheme, resetTheme, themeChanged] = useDerived(theme);
-  const setPreviewTheme = usePreviewThemeStore((s) => s.setPreviewTheme);
-  const resetPreviewTheme = useCallback(
-    () => setPreviewTheme(theme),
-    [setPreviewTheme, theme],
-  );
   const [
     appLanguageState,
     setAppLanguage,
@@ -87,7 +81,6 @@ export function useSettingsState(
 
   function reset() {
     resetTheme();
-    resetPreviewTheme();
     resetAppLanguage();
     resetSubStyling();
     resetProxyUrls();

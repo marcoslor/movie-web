@@ -26,13 +26,13 @@ export const useThemeStore = create(
 );
 
 export interface PreviewThemeStore {
-  previewTheme: string | null;
-  setPreviewTheme(v: string | null): void;
+  previewTheme: string | undefined;
+  setPreviewTheme(v: string | undefined): void;
 }
 
 export const usePreviewThemeStore = create(
   immer<PreviewThemeStore>((set) => ({
-    previewTheme: null,
+    previewTheme: "default",
     setPreviewTheme(v) {
       set((s) => {
         s.previewTheme = v;
@@ -45,11 +45,11 @@ export function ThemeProvider(props: {
   children?: ReactNode;
   applyGlobal?: boolean;
 }) {
+  const activeTheme = useThemeStore((s) => s.theme) ?? "default";
   const previewTheme = usePreviewThemeStore((s) => s.previewTheme);
-  const theme = useThemeStore((s) => s.theme);
 
-  const themeToDisplay = previewTheme ?? theme;
-  const themeSelector = themeToDisplay ? `theme-${themeToDisplay}` : undefined;
+  const theme = previewTheme ?? activeTheme;
+  const themeSelector = `theme-${theme}`;
 
   return (
     <div className={themeSelector}>

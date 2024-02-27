@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAsyncFn } from "react-use";
 
@@ -101,10 +101,13 @@ export function AccountSettings(props: {
 
 export function SettingsPage() {
   const { t } = useTranslation();
-  const activeTheme = useThemeStore((s) => s.theme) ?? "default";
-  const setTheme = useThemeStore((s) => s.setTheme);
-  const previewTheme = usePreviewThemeStore((s) => s.previewTheme) ?? "default";
+  const inUseTheme = useThemeStore((s) => s.theme) ?? "default";
+  const setInUseTheme = useThemeStore((s) => s.setTheme);
+
+  const previewTheme = usePreviewThemeStore((s) => s.previewTheme);
   const setPreviewTheme = usePreviewThemeStore((s) => s.setPreviewTheme);
+
+  const activeTheme = previewTheme ?? inUseTheme;
 
   const appLanguage = useLanguageStore((s) => s.language);
   const setAppLanguage = useLanguageStore((s) => s.setLanguage);
@@ -135,7 +138,7 @@ export function SettingsPage() {
   const user = useAuthStore();
 
   const state = useSettingsState(
-    activeTheme,
+    inUseTheme,
     appLanguage,
     subStyling,
     decryptedName,
@@ -143,22 +146,6 @@ export function SettingsPage() {
     backendUrlSetting,
     account?.profile,
     enableThumbnails,
-  );
-
-  // Reset the preview theme when the settings page is unmounted
-  useEffect(
-    () => () => {
-      setPreviewTheme(null);
-    },
-    [setPreviewTheme],
-  );
-
-  const setThemeWithPreview = useCallback(
-    (v: string | null) => {
-      state.theme.set(v === "default" ? null : v);
-      setPreviewTheme(v);
-    },
-    [state.theme, setPreviewTheme],
   );
 
   const saveChanges = useCallback(async () => {
@@ -193,7 +180,7 @@ export function SettingsPage() {
 
     setEnableThumbnails(state.enableThumbnails.state);
     setAppLanguage(state.appLanguage.state);
-    setTheme(state.theme.state);
+    setInUseTheme(state.theme.state);
     setSubStyling(state.subtitleStyling.state);
     setProxySet(state.proxyUrls.state?.filter((v) => v !== "") ?? null);
 
@@ -212,7 +199,7 @@ export function SettingsPage() {
     backendUrl,
     setEnableThumbnails,
     setAppLanguage,
-    setTheme,
+    setInUseTheme,
     setSubStyling,
     updateDeviceName,
     updateProfile,
@@ -220,6 +207,28 @@ export function SettingsPage() {
     setBackendUrl,
     logout,
   ]);
+
+  const resetState = useCallback(() => {
+    state.reset();
+    setPreviewTheme(undefined);
+  }, [setPreviewTheme, state]);
+
+  const setThemeWithPreview = useCallback(
+    (theme: string) => {
+      setPreviewTheme(theme);
+      state.theme.set(theme);
+    },
+    [setPreviewTheme, state.theme],
+  );
+
+  // Reset the preview theme when the settings page is unmounted
+  useEffect(
+    () => () => {
+      setPreviewTheme(undefined);
+    },
+    [setPreviewTheme],
+  );
+
   return (
     <SubPageLayout>
       <PageTitle subpage k="global.pages.settings" />
@@ -260,8 +269,8 @@ export function SettingsPage() {
         </div>
         <div id="settings-appearance" className="mt-48">
           <ThemePart
-            active={previewTheme}
-            inUse={activeTheme}
+            active={activeTheme}
+            inUse={inUseTheme}
             setTheme={setThemeWithPreview}
           />
         </div>
@@ -290,7 +299,7 @@ export function SettingsPage() {
           <Button
             className="w-full md:w-auto"
             theme="secondary"
-            onClick={state.reset}
+            onClick={resetState}
           >
             {t("settings.reset")}
           </Button>
