@@ -26,8 +26,8 @@ export const useThemeStore = create(
 );
 
 export interface PreviewThemeStore {
-  previewTheme: string | undefined;
-  setPreviewTheme(v: string | undefined): void;
+  previewTheme: string | null;
+  setPreviewTheme(v: string | null): void;
 }
 
 export const usePreviewThemeStore = create(

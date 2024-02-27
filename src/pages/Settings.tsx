@@ -101,7 +101,8 @@ export function AccountSettings(props: {
 
 export function SettingsPage() {
   const { t } = useTranslation();
-  const inUseTheme = useThemeStore((s) => s.theme) ?? "default";
+
+  const inUseTheme = useThemeStore((s) => s.theme);
   const setInUseTheme = useThemeStore((s) => s.setTheme);
 
   const previewTheme = usePreviewThemeStore((s) => s.previewTheme);
@@ -210,24 +211,23 @@ export function SettingsPage() {
 
   const resetState = useCallback(() => {
     state.reset();
-    setPreviewTheme(undefined);
+    setPreviewTheme(null);
   }, [setPreviewTheme, state]);
 
   const setThemeWithPreview = useCallback(
     (theme: string) => {
       setPreviewTheme(theme);
-      state.theme.set(theme);
+      state.theme.set(theme === "default" ? null : theme);
     },
     [setPreviewTheme, state.theme],
   );
 
-  // Reset the preview theme when the settings page is unmounted
-  useEffect(
-    () => () => {
-      setPreviewTheme(undefined);
-    },
-    [setPreviewTheme],
-  );
+  useEffect(() => {
+    // Clear preview theme on unmount
+    return () => {
+      setPreviewTheme(null);
+    };
+  }, [setPreviewTheme]);
 
   return (
     <SubPageLayout>
@@ -269,8 +269,8 @@ export function SettingsPage() {
         </div>
         <div id="settings-appearance" className="mt-48">
           <ThemePart
-            active={activeTheme}
-            inUse={inUseTheme}
+            active={activeTheme ?? "default"}
+            inUse={inUseTheme ?? "default"}
             setTheme={setThemeWithPreview}
           />
         </div>
